@@ -1,0 +1,103 @@
+{
+  "name": "Blog Approval & Rejection Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "blog-approval"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "webhook-001",
+      "webhookId": "245d31f3-f72d-4306-86b7-4d27da32a793"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "nodes": [
+            {
+              "parameters": {
+                "value1": "={{ $json.action }}",
+                "value2": "approve"
+              },
+              "type": "string",
+              "operation": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Check Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [224, 0],
+      "id": "if-action-check"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0].json;\nconst requestorName = data.requestorName || 'unknown';\nconst topic = data.topic || 'blog';\nconst date = new Date().toISOString().split('T')[0];\nconst blogId = `${requestorName.toUpperCase()}-${topic.replace(/\\s+/g, '-').toUpperCase()}-${date}`.substring(0, 50);\nconst stagingPageUrl = `https://yoursite.com/blog-review.html?email=${encodeURIComponent(data.requestorEmail)}&id=${encodeURIComponent(blogId)}`;\n\nreturn [{\n  json: {\n    blogId: blogId,\n    requestorName: requestorName,\n    requestorEmail: data.requestorEmail,\n    topic: topic,\n    angle: data.angle || 'Not specified',\n    audience: data.audience || 'Not specified',\n    wordCount: data.wordCount || 'Not specified',\n    tone: data.tone || 'Professional',\n    submissionDate: data.submissionDate || new Date().toLocaleDateString('en-GB'),\n    stagingPageUrl: stagingPageUrl,\n    action: 'approve'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, -200],
+      "id": "code-generate-id",
+      "name": "Generate Blog ID & URL"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.requestorEmail }}",
+        "subject": "=Your Blog Post is Ready for Review - {{ $json.blogId }}",
+        "message": "=Blog Post Ready for Review\n\nHi {{ $json.requestorName }},\n\nYour blog post is ready for review!\n\nTopic: {{ $json.topic }}\nResearch Angle: {{ $json.angle }}\nTarget Audience: {{ $json.audience }}\nWord Count: {{ $json.wordCount }}\nTone: {{ $json.tone }}\n\nPlease access your staging page using this link:\n{{ $json.stagingPageUrl }}\n\nYour Review ID: {{ $json.blogId }}\n\nYou can approve the blog or request modifications directly on the staging page.\n\nBest regards,\nBioLogix Bureau"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, -200],
+      "id": "email-send-approval",
+      "name": "Send Approval Email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yiNOrI8N3uf8zdFO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.requestorEmail }}",
+        "subject": "=Blog Submission Not Approved - {{ $json.topic }}",
+        "message": "=Blog Submission Review\n\nHi {{ $json.requestorName }},\n\nThank you for your blog submission. Unfortunately, we are unable to proceed with this request at this time.\n\n--- SUBMISSION DETAILS ---\nTopic: {{ $json.topic }}\nResearch Angle: {{ $json.angle }}\nTarget Audience: {{ $json.audience }}\nWord Count: {{ $json.wordCount }}\nTone: {{ $json.tone }}\n\n--- FEEDBACK ---\n{{ $json.rejectionReason }}\n\n--- NEXT STEPS ---\nIf you would like to discuss this decision or have questions, please feel free to reach out to us.\n\nBest regards,\nBioLogix Bureau"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 200],
+      "id": "email-send-rejection",
+      "name": "Send Rejection Email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yiNOrI8N3uf8zdFO",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Check Action", "type": "main", "index": 0}]]
+    },
+    "Check Action": {
+      "main": [
+        [{"node": "Generate Blog ID & URL", "type": "main", "index": 0}],
+        [{"node": "Send Rejection Email", "type": "main", "index": 0}]
+      ]
+    },
+    "Generate Blog ID & URL": {
+      "main": [[{"node": "Send Approval Email", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

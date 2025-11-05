@@ -1,0 +1,46 @@
+{
+  "name": "Blog Research Prompt Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "blog-form-webhook",
+        "httpMethod": ["POST"],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [100, 100],
+      "id": "webhook_node",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);\nconst topic = (data.topic || 'untitled').replace(/[^a-z0-9]/gi, '_').toLowerCase();\nconst filename = `Perplexity_Research_${topic}_${timestamp}.txt`;\n\nconst styles = Array.isArray(data.style) ? data.style.join(', ') : (data.style || 'Not specified');\n\nconst prompt = `PERPLEXITY RESEARCH REQUEST\n===============================\n\nPrimary Research Topic: ${data.topic}\nContent Angle/Focus: ${data.angle}\nTarget Audience: ${data.audience}\n\n---\n\nRESEARCH PARAMETERS:\nIntended Article Length: ${data.wordCount}\nResearch Depth Required: ${data.depth}\nContent Style(s): ${styles}\nDesired Tone: ${data.tone}\n\n---\n\nRESEARCH GUIDELINES:\nTopics/Areas to Avoid: ${data.limitations || 'None specified'}\nSpecific Research Requirements: ${data.requirements || 'None specified'}\n\n---\n\nADDITIONAL CONTEXT:\n${data.notes || 'None provided'}\n\n---\n\nPERPLEXITY RESEARCH TASK:\nPlease research the topic \"${data.topic}\" with a focus on \"${data.angle}\" for the audience: ${data.audience}.\n\nProvide:\n1. Current trends and developments\n2. Key statistics and data points\n3. Expert opinions and insights\n4. Relevant case studies or examples\n5. Potential challenges or controversies\n6. Future outlook and predictions\n7. Double-check references before making claims\n8. Provide a list of the most relevant links supporting your research\n\nEnsure the research depth matches \"${data.depth}\" level and supports a ${data.wordCount} word article with a ${data.tone} tone.`;\n\nreturn {\n  json: {\n    filename: filename,\n    prompt: prompt,\n    topic: data.topic\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 100],
+      "id": "generate_prompt",
+      "name": "Generate Prompt"
+    },
+    {
+      "parameters": {
+        "command": "cat > /data/form_requests/{{ $node[\"Generate Prompt\"].json.filename }} << 'FILEEOF'\n{{ $node[\"Generate Prompt\"].json.prompt }}\nFILEEOF"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [500, 100],
+      "id": "write_file",
+      "name": "Write File"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Generate Prompt", "type": "main", "index": 0}]]
+    },
+    "Generate Prompt": {
+      "main": [[{"node": "Write File", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true
+}

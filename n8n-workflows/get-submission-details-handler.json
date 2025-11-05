@@ -1,0 +1,69 @@
+{
+  "name": "Get Submission Details Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "get-submission-details",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        96
+      ],
+      "id": "webhook-node"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.airtable.com/v0/appB1TRPiD3sXb5vg/Blog%20Submissions/{{ $query.id }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_PERSONAL_ACCESS_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        96
+      ],
+      "id": "http-request-node"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "updated",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "get-submission-details",
+  "tags": []
+}

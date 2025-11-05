@@ -1,0 +1,79 @@
+{
+  "name": "Blog Repost Notification Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "blog-repost-notify",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.all()[0].json;\n\n// Ensure email is a non-empty string\nif (!data.email) {\n  // If email is missing, stop the workflow for this item\n  console.log('Stopping workflow: email is missing.');\n  return [];\n}\n\n// Create a new object to avoid modifying the original input\nconst outputData = { ...data };\n\n// Ensure email and blogId are strings\noutputData.email = String(outputData.email);\noutputData.blogId = String(outputData.blogId || 'Unknown Blog');\n\n// URL-encode the parameters\nconst encodedEmail = encodeURIComponent(outputData.email);\nconst encodedBlogId = encodeURIComponent(outputData.blogId);\n\n// Construct the review URL\noutputData.reviewUrl = `http://localhost:5678/blog-review.html?email=${encodedEmail}&id=${encodedBlogId}`;\n\nconsole.log('Processed data with reviewUrl:', JSON.stringify(outputData, null, 2));\n\nreturn [{ json: outputData }];"
+      },
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Your Blog Post Has Been Updated - {{ $json.blogId }}",
+        "message": "Hello,\n\nYour blog post (ID: {{ $json.blogId }}) has been updated by our team.\n\nPlease review the changes here: {{ $json.reviewUrl }}\n\nBest regards,\nBioLogix Bureau"
+      },
+      "name": "Send Update Email to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yiNOrI8N3uf8zdFO",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function": {
+      "main": [
+        [
+          {
+            "node": "Send Update Email to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

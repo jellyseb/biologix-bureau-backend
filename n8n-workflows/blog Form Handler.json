@@ -1,0 +1,77 @@
+{
+  "name": "Blog Form Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "blog-form-webhook",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        96
+      ],
+      "id": "740edd07-acb9-4c21-84ed-2fe888c3bc25",
+      "webhookId": "a47086a3-7042-4726-8f2b-c468e614a5cb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appB1TRPiD3sXb5vg/Blog%20Submissions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_PERSONAL_ACCESS_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "body": "={{JSON.stringify({ records: [ { fields: $json[0].body } ] })}}",
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        96
+      ],
+      "id": "58357f28-4406-4548-8cf8-838d3a71ad7f"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "76a697ca-2248-4221-a737-53eda8684e3c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9dcf649cb8d3fabbe001cbf9b46721b550f2143153a5dddf8ed7d4f0236141a5"
+  },
+  "id": "APSO47B08FUHoVDf",
+  "tags": []
+}

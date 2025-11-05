@@ -1,0 +1,96 @@
+{
+  "name": "Blog Modification Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "blog-modifications",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = $input.all()[0].json;\nconsole.log('Modification Request:', JSON.stringify(data, null, 2));\n\nconst priority = {\n  'Urgent': 'P1',\n  'High': 'P2',\n  'Medium': 'P3',\n  'Low': 'P4'\n}[data.urgencyLevel] || 'P3';\n\nreturn [{json: {...data, priority}}];"
+      },
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "to": "content-team@biologixbureau.com",
+        "subject": "[{{$json.priority}}] Modification Request: {{$json.blogId}}",
+        "html": "<h3>Modification Request for Blog: {{$json.blogId}}</h3>\n<p><strong>From:</strong> {{$json.email}}</p>\n<p><strong>Modification Type:</strong> {{$json.modificationType}}</p>\n<p><strong>Urgency:</strong> {{$json.urgencyLevel}}</p>\n<p><strong>Sections:</strong> {{ $json.sections ? $json.sections.join(', ') : 'N/A' }}</p>\n<p><strong>Details:</strong></p>\n<pre>{{$json.details}}</pre>\n<p><strong>Additional Context:</strong></p>\n<pre>{{$json.additionalContext}}</pre>\n<h4>Current Blog Content:</h4>\n<pre>{{$json.currentBlogContent}}</pre>\n<p>Please review and make the necessary adjustments. You can access the tracking dashboard <a href=\"http://localhost:5678/tracking.html\">here</a>.</p>\n<p>Best regards,<br>BioLogix Bureau Automation</p>"
+      },
+      "name": "Send Email to Team",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        680,
+        200
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yiNOrI8N3uf8zdFO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "to": "{{$json.email}}",
+        "subject": "We've Received Your Modification Request",
+        "text": "We have received your modification request for blog ID {{$json.blogId}} and will get back to you shortly."
+      },
+      "name": "Send Email to Client",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        680,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Team",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Email to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

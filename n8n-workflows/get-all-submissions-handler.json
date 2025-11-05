@@ -1,0 +1,71 @@
+{
+  "name": "Get All Submissions Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "get-all-submissions-test",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        640,
+        64
+      ],
+      "id": "e24a24ed-5e9b-41a9-9b5d-60bf76cf97e8",
+      "webhookId": "c55a8059-893c-45aa-a0a8-d147e87f05dd"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.airtable.com/v0/appB1TRPiD3sXb5vg/Blog%20Submissions?fields[]=requestorName&fields[]=requestorEmail&fields[]=organisation&fields[]=orgType&fields[]=topic&fields[]=angle&fields[]=audience&fields[]=wordCount&fields[]=depth&fields[]=style&fields[]=limitations&fields[]=requirements&fields[]=tone&fields[]=notes&fields[]=timestamp&fields[]=submissionDate&fields[]=perplexityPrompt&fields[]=fileName&fields[]=blogId&fields[]=Status&fields[]=Review%20URL",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_PERSONAL_ACCESS_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        64
+      ],
+      "id": "5610ec02-e681-4d03-8f65-e7aa333e6b49"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e5912c86-c347-4ef0-91c6-0a1728752488",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9dcf649cb8d3fabbe001cbf9b46721b550f2143153a5dddf8ed7d4f0236141a5"
+  },
+  "id": "IUaVqJhmBB4wDVZc",
+  "tags": []
+}

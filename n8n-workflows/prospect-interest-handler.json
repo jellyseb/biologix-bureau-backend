@@ -1,0 +1,69 @@
+{
+  "name": "Prospect Interest Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "prospect-interest",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "console.log('Prospect Interest:', JSON.stringify($input.all(), null, 2));\nreturn $input.all();"
+      },
+      "name": "Function",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "to": "sebspagnou@gmail.com",
+        "subject": "New Prospect Interest - {{ $json.company }}",
+        "text": "New Prospect Interest Received!\n\nProspect Details:\n- Name: {{ $json.name }}\n- Email: {{ $json.email }}\n- Company: {{ $json.company }}\n- Comments: {{ $json.comments }}\n\nForm Type: {{ $json.formType }}\nSubmission Date: {{ $json.submissionDate }}\nTimestamp: {{ $json.timestamp }}\n\nFollow up with this prospect at their email address."
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
